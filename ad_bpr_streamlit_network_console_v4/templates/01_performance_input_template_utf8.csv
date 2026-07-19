@@ -1,0 +1,4 @@
+﻿platform,entity_type,product_id,keyword,period_start,period_end,registered_bid,impressions,clicks,cost,actual_cpc,sales_short,orders_short,sales_attr,orders_attr,ctr_pct
+rakuten,ITEM,860-05,,2026-07-01,2026-07-07,36,12000,420,12600,30.0,68200,12,119800,21,3.5
+rakuten,KEYWORD,860-05,布団 収納袋,2026-07-01,2026-07-07,40,4200,180,7200,40.0,42100,8,77800,14,4.29
+yahoo,KEYWORD,860-05,布団収納袋,2026-07-01,2026-07-07,35,3000,120,3900,32.5,31000,6,31000,6,4.0

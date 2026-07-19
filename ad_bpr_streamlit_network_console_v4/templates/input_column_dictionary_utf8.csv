@@ -1,0 +1,40 @@
+﻿input_key,input_title,column,requirement,type,example,definition
+performance,01 / 実績レポート,platform,必須,string,rakuten / yahoo,媒体。楽天RPPの生レポートは自動判定されるため変換不要。
+performance,01 / 実績レポート,entity_type,必須,enum,ITEM / KEYWORD,商品単位または商品×キーワード単位。
+performance,01 / 実績レポート,product_id,必須,string,860-05,媒体の商品管理番号。共通商品IDと異なる場合は商品マスタで紐付ける。
+performance,01 / 実績レポート,keyword,KEYWORD時必須,string,布団 収納袋,ITEM行は空欄。表記揺れはテキストマイニングで正規化する。
+performance,01 / 実績レポート,period_start,必須,date,2026-07-01,集計開始日 YYYY-MM-DD。
+performance,01 / 実績レポート,period_end,必須,date,2026-07-07,集計終了日 YYYY-MM-DD。
+performance,01 / 実績レポート,registered_bid,推奨,number,40,レポート上の登録入札。現在設定CSVがある場合はそちらを優先。
+performance,01 / 実績レポート,impressions,推奨,number,4200,表示回数。CTR・露出規模・関係性分析に使用。
+performance,01 / 実績レポート,clicks,必須,number,180,クリック数。
+performance,01 / 実績レポート,cost,必須,number,7200,広告費。税抜の同一定義へ統一。
+performance,01 / 実績レポート,actual_cpc,推奨,number,40,実績CPC。空欄の場合は cost / clicks を使用可能。
+performance,01 / 実績レポート,sales_short,推奨,number,42100,短期アトリビューション売上。楽天12h / Yahoo24h等。
+performance,01 / 実績レポート,orders_short,推奨,number,8,短期アトリビューション注文数。
+performance,01 / 実績レポート,sales_attr,必須,number,77800,主判定売上。楽天720h / Yahoo24hの正規化値。
+performance,01 / 実績レポート,orders_attr,必須,number,14,主判定注文数。
+performance,01 / 実績レポート,ctr_pct,推奨,number,4.29,CTR%。空欄時は表示回数があれば再計算。
+settings,02 / 現在の入札設定,コントロールカラム,出力時必須,string,u,RMS反映用。入力時は空欄で可。出力アダプタが変更行へ制御値を設定。
+settings,02 / 現在の入札設定,商品管理番号,必須,string,860-05,商品キー。実績・商品マスタと完全一致させる。
+settings,02 / 現在の入札設定,商品名,推奨,string,布団収納袋,GUIのノードラベル・検索・テキストマイニングに使用。
+settings,02 / 現在の入札設定,価格,推奨,number,4980,商品価格。AOVや商品ポートフォリオ表示の補助。
+settings,02 / 現在の入札設定,商品URL,推奨,url,https://...,GUIから媒体商品ページを確認するための参照URL。
+settings,02 / 現在の入札設定,商品CPC,商品行必須,number,36,商品単位の現在登録CPC。
+settings,02 / 現在の入札設定,キーワード,キーワード行必須,string,布団 収納袋,空欄行は商品CPC行、入力ありは商品×キーワード行。
+settings,02 / 現在の入札設定,キーワードCPC,キーワード行必須,number,40,商品×キーワード単位の現在登録CPC。
+settings,02 / 現在の入札設定,目安CPC,任意,number,56,媒体提示の参考CPC。演算上は制約ではなく補助情報。
+product_master,03 / 商品マスタ,platform,必須,string,rakuten,媒体。
+product_master,03 / 商品マスタ,common_product_id,必須,string,CP-00086005,楽天・Yahoo横断の共通商品ID。
+product_master,03 / 商品マスタ,product_id,必須,string,860-05,媒体の商品管理番号。
+product_master,03 / 商品マスタ,product_name,推奨,string,布団収納袋,商品ノードの表示名、商品名テキストマイニングに使用。
+product_master,03 / 商品マスタ,category,推奨,string,寝具収納,規模・ポートフォリオ・クラスタ集計。
+product_master,03 / 商品マスタ,product_group,推奨,string,布団収納,ベイズ事前分布と類似商品群。
+product_master,03 / 商品マスタ,gross_margin_rate,強く推奨,rate,0.35 / 35,標準粗利率。未登録行は既定で入稿をブロック。
+product_master,03 / 商品マスタ,other_promo_cost_rate,推奨,rate,0.08 / 8,ポイント・クーポン・アフィリエイト等の売上比率。
+product_master,03 / 商品マスタ,item_min_cpc,任意,number,24,商品固有のCPC下限。
+product_master,03 / 商品マスタ,item_max_cpc,任意,number,100,商品固有のCPC上限。
+product_master,03 / 商品マスタ,stock_qty,任意,number,420,在庫。0以下は停止制約に利用可能。
+product_master,03 / 商品マスタ,product_status,推奨,enum,ACTIVE,ACTIVE / OUT_OF_STOCK / DISCONTINUED / RESERVED / INACTIVE。
+product_master,03 / 商品マスタ,launch_date,任意,date,2025-01-15,新商品・観測期間の判定補助。
+product_master,03 / 商品マスタ,role,任意,enum,PROFIT,商品役割。現行方針では均一にPROFIT。
