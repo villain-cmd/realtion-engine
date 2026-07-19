@@ -2,7 +2,21 @@
 
 楽天RPP / Yahooショッピングの広告実績を、**商品管理番号 × キーワードの関係構造**として可視化し、粗利制約付きCPC演算、手動補正、入稿CSV、次回継続状態までを1つのStreamlitアプリで処理します。
 
-外部AI API、LLM API、APIキー、常設DBは不要です。GitHubからStreamlit Community Cloudへデプロイできます。
+従来のCSV計算フローは外部AI API、LLM API、APIキー、常設DBなしでも実行できます。Data Automationを使う場合だけ、選択した接続先のSecretsを設定します。
+
+## v5 Data Automation
+
+CSV手動投入だけでなく、画面上で `取得 → プレビュー → DB保存 → 分析` を進められます。
+
+- Google Sheetsをテスト用DBとして使用
+- DBの実績・入札設定・商品マスタから直接分析
+- GA4 Data APIから日次チャネル実績を取得
+- Google Ads APIから日次広告グループ実績を取得
+- Airレジ データ連携API用の設定可能なコネクタ
+- CSVはDBへの初期投入・補助入力・直接分析の任意オプション
+- `_record_hash` による重複防止Upsert
+
+Secretsの雛形は `.streamlit/secrets.example.toml`、設定と運用の詳細は `docs/data_automation.md` を参照してください。実際の認証情報はコミットしません。
 
 ## v4の主変更
 

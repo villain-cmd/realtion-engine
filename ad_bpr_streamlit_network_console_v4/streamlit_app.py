@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from src.automation_ui import render_data_automation
 from src.io_utils import dataframe_to_csv_bytes, json_bytes, read_csv_flexible
 from src.metrics import summarize_kpis
 from src.network_viz import (
@@ -260,13 +261,17 @@ header_slot = st.empty()
 with header_slot.container():
     brand_header()
 
-has_uploaded_reports = bool(st.session_state.get("performance_files"))
+with st.expander("DATA AUTOMATION — API / Google Sheets DB", expanded=True):
+    automated_reports, automated_setting_df, automated_master_df = render_data_automation()
+
+has_automated_reports = bool(automated_reports)
+has_uploaded_reports = bool(st.session_state.get("performance_files")) or has_automated_reports
 if not has_uploaded_reports:
     hero_empty_state()
-with st.expander("DATA DOCK — 3入力ファイル / テンプレート", expanded=not has_uploaded_reports):
+with st.expander("CSV OPTION — 3入力ファイル / テンプレート", expanded=not has_uploaded_reports):
     report_files, setting_file, product_master_file = render_input_dock()
 
-if not report_files:
+if not report_files and not automated_reports:
     section_heading(
         "INPUT CONTRACT",
         "入力定義を先に確認する",
@@ -279,13 +284,13 @@ if not report_files:
         height=460,
         column_config={"definition": st.column_config.TextColumn("定義", width="large")},
     )
-    callout("実績レポートを投入すると、ホームが商品×キーワードのネットワークインテリジェンスへ切り替わります。")
+    callout("Google Sheets DBから実績を読み込むか、任意オプションのCSVを投入すると分析を開始します。")
     st.stop()
 
 # ---------------------------
 # Read and validate uploads
 # ---------------------------
-loaded_reports = []
+loaded_reports = list(automated_reports)
 errors: list[str] = []
 for uploaded in report_files:
     try:
@@ -298,7 +303,7 @@ for uploaded in report_files:
     except Exception as exc:
         errors.append(f"{uploaded.name}: {exc}")
 
-setting_df = None
+setting_df = automated_setting_df
 loaded_setting = None
 if setting_file:
     try:
@@ -311,7 +316,7 @@ if setting_file:
     except Exception as exc:
         errors.append(f"{setting_file.name}: {exc}")
 
-product_master_df = None
+product_master_df = automated_master_df
 loaded_master = None
 if product_master_file:
     try:
