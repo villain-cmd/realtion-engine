@@ -50,6 +50,9 @@ def source_config(source: str) -> dict[str, Any]:
     if source == "shopify":
         return {
             "shop_domain": env("SHOPIFY_SHOP_DOMAIN"),
+            "client_id": env("SHOPIFY_CLIENT_ID"),
+            "client_secret": env("SHOPIFY_CLIENT_SECRET"),
+            # Backward compatibility for older admin-created custom apps.
             "access_token": env("SHOPIFY_ACCESS_TOKEN"),
             "api_version": env("SHOPIFY_API_VERSION", "2026-07"),
         }
@@ -88,12 +91,19 @@ def required_configuration_present(source: str, config: dict[str, Any]) -> bool:
     required = {
         "ga4": ("property_id",),
         "google_ads": ("customer_id", "developer_token"),
-        "shopify": ("shop_domain", "access_token"),
+        "shopify": ("shop_domain",),
         "yahoo_shopping": ("seller_id",),
         "airregi": ("base_url", "transactions_path", "api_key", "api_token"),
     }[source]
     if not all(str(config.get(key, "")).strip() for key in required):
         return False
+    if source == "shopify":
+        direct = bool(str(config.get("access_token", "")).strip())
+        client_credentials = all(
+            str(config.get(key, "")).strip()
+            for key in ("client_id", "client_secret")
+        )
+        return direct or client_credentials
     if source == "yahoo_shopping":
         direct = bool(str(config.get("access_token", "")).strip())
         refresh = all(
