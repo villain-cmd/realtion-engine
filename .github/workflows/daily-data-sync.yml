@@ -1,0 +1,68 @@
+name: Daily API data sync
+
+on:
+  schedule:
+    # 05:15 JST. Yahoo!ショッピングの固定IP要件がある場合は
+    # repository variable SYNC_RUNNER を self-hosted に変更する。
+    - cron: "15 20 * * *"
+  workflow_dispatch:
+    inputs:
+      sources:
+        description: "Comma-separated sources"
+        required: false
+        default: "ga4,google_ads,shopify,yahoo_shopping,airregi"
+      lookback_days:
+        description: "Days to refetch (idempotent upsert)"
+        required: false
+        default: "3"
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ${{ vars.SYNC_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ad_bpr_streamlit_network_console_v4
+    env:
+      SYNC_SOURCES: ${{ inputs.sources || vars.SYNC_SOURCES || 'ga4,google_ads,shopify,yahoo_shopping,airregi' }}
+      SYNC_LOOKBACK_DAYS: ${{ inputs.lookback_days || vars.SYNC_LOOKBACK_DAYS || '3' }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+      GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
+      GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_CUSTOMER_ID }}
+      GOOGLE_ADS_LOGIN_CUSTOMER_ID: ${{ secrets.GOOGLE_ADS_LOGIN_CUSTOMER_ID }}
+      GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+      GOOGLE_ADS_CLIENT_ID: ${{ secrets.GOOGLE_ADS_CLIENT_ID }}
+      GOOGLE_ADS_CLIENT_SECRET: ${{ secrets.GOOGLE_ADS_CLIENT_SECRET }}
+      GOOGLE_ADS_REFRESH_TOKEN: ${{ secrets.GOOGLE_ADS_REFRESH_TOKEN }}
+      SHOPIFY_SHOP_DOMAIN: ${{ secrets.SHOPIFY_SHOP_DOMAIN }}
+      SHOPIFY_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ACCESS_TOKEN }}
+      YAHOO_SHOPPING_SELLER_ID: ${{ secrets.YAHOO_SHOPPING_SELLER_ID }}
+      YAHOO_SHOPPING_CLIENT_ID: ${{ secrets.YAHOO_SHOPPING_CLIENT_ID }}
+      YAHOO_SHOPPING_CLIENT_SECRET: ${{ secrets.YAHOO_SHOPPING_CLIENT_SECRET }}
+      YAHOO_SHOPPING_REFRESH_TOKEN: ${{ secrets.YAHOO_SHOPPING_REFRESH_TOKEN }}
+      YAHOO_SHOPPING_PUBLIC_KEY: ${{ secrets.YAHOO_SHOPPING_PUBLIC_KEY }}
+      YAHOO_SHOPPING_PUBLIC_KEY_VERSION: ${{ vars.YAHOO_SHOPPING_PUBLIC_KEY_VERSION }}
+      AIRREGI_BASE_URL: ${{ secrets.AIRREGI_BASE_URL }}
+      AIRREGI_TRANSACTIONS_PATH: ${{ secrets.AIRREGI_TRANSACTIONS_PATH }}
+      AIRREGI_API_KEY: ${{ secrets.AIRREGI_API_KEY }}
+      AIRREGI_API_TOKEN: ${{ secrets.AIRREGI_API_TOKEN }}
+      AIRREGI_DATE_FIELD: ${{ vars.AIRREGI_DATE_FIELD }}
+      AIRREGI_PRODUCT_ID_FIELD: ${{ vars.AIRREGI_PRODUCT_ID_FIELD }}
+      AIRREGI_PRODUCT_NAME_FIELD: ${{ vars.AIRREGI_PRODUCT_NAME_FIELD }}
+      AIRREGI_QUANTITY_FIELD: ${{ vars.AIRREGI_QUANTITY_FIELD }}
+      AIRREGI_AMOUNT_FIELD: ${{ vars.AIRREGI_AMOUNT_FIELD }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ad_bpr_streamlit_network_console_v4/requirements.txt
+      - run: python -m pip install -r requirements.txt
+      - run: python scripts/sync_data_sources.py --skip-unconfigured
