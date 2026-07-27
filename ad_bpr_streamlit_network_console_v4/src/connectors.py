@@ -294,8 +294,19 @@ class ShopifyConnector:
     """Read order line items through the Shopify Admin GraphQL API."""
 
     def __init__(self, config: Mapping[str, Any], session: Any | None = None) -> None:
-        self.config = dict(config)
-        _require(self.config, "shop_domain", "access_token")
+        self.config = {
+            key: value for key, value in dict(config).items() if value not in (None, "")
+        }
+        _require(self.config, "shop_domain")
+        direct_token = bool(str(self.config.get("access_token", "")).strip())
+        client_credentials = all(
+            str(self.config.get(key, "")).strip()
+            for key in ("client_id", "client_secret")
+        )
+        if not (direct_token or client_credentials):
+            raise ConnectorConfigurationError(
+                "Shopify接続には client_id / client_secret が必要です。"
+            )
         domain = str(self.config["shop_domain"]).strip()
         domain = domain.removeprefix("https://").removeprefix("http://").rstrip("/")
         if not domain.endswith(".myshopify.com"):
@@ -313,6 +324,42 @@ class ShopifyConnector:
     @property
     def endpoint(self) -> str:
         return f"https://{self.shop_domain}/admin/api/{self.api_version}/graphql.json"
+
+    @property
+    def token_endpoint(self) -> str:
+        return f"https://{self.shop_domain}/admin/oauth/access_token"
+
+    def _access_token(self) -> str:
+        """Return a token for this run.
+
+        Dev Dashboard apps use Shopify's client credentials grant. The returned
+        token lasts 24 hours, so the scheduled job requests a fresh token on
+        every run instead of persisting it. A direct token remains supported for
+        legacy admin-created apps.
+        """
+
+        direct = str(self.config.get("access_token", "")).strip()
+        if direct:
+            return direct
+        response = self.session.post(
+            self.token_endpoint,
+            headers={
+                "Accept": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            data={
+                "grant_type": "client_credentials",
+                "client_id": str(self.config["client_id"]),
+                "client_secret": str(self.config["client_secret"]),
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        token = str(payload.get("access_token", "")).strip()
+        if not token:
+            raise RuntimeError("Shopifyの認証応答にaccess_tokenがありません。")
+        return token
 
     @staticmethod
     def orders_to_frame(orders: Iterable[Mapping[str, Any]]) -> pd.DataFrame:
@@ -342,6 +389,7 @@ class ShopifyConnector:
         return pd.DataFrame(records)
 
     def fetch(self, start_date: str, end_date: str, max_pages: int = 100) -> ConnectorResult:
+        access_token = self._access_token()
         cursor: str | None = None
         orders: list[dict[str, Any]] = []
         query_filter = f"created_at:>={start_date} created_at:<={end_date}T23:59:59Z"
@@ -350,7 +398,7 @@ class ShopifyConnector:
                 self.endpoint,
                 headers={
                     "Content-Type": "application/json",
-                    "X-Shopify-Access-Token": str(self.config["access_token"]),
+                    "X-Shopify-Access-Token": access_token,
                 },
                 json={
                     "query": SHOPIFY_ORDERS_QUERY,
