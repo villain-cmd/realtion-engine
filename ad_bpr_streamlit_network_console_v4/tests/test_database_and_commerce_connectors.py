@@ -25,8 +25,18 @@ class ShopifySession:
     def __init__(self):
         self.calls = []
 
-    def post(self, url, headers, json, timeout):
-        self.calls.append((url, headers, json, timeout))
+    def post(self, url, headers, timeout, data=None, json=None):
+        self.calls.append(
+            {"url": url, "headers": headers, "data": data, "json": json, "timeout": timeout}
+        )
+        if url.endswith("/admin/oauth/access_token"):
+            return FakeResponse(
+                {
+                    "access_token": "fresh-24-hour-token",
+                    "scope": "read_orders",
+                    "expires_in": 86399,
+                }
+            )
         return FakeResponse(
             {
                 "data": {
@@ -69,7 +79,8 @@ def test_shopify_orders_are_flattened_and_keyed():
     result = ShopifyConnector(
         {
             "shop_domain": "coffee.myshopify.com",
-            "access_token": "secret",
+            "client_id": "dev-dashboard-client-id",
+            "client_secret": "dev-dashboard-client-secret",
             "api_version": "2026-07",
         },
         session=session,
@@ -77,8 +88,28 @@ def test_shopify_orders_are_flattened_and_keyed():
     assert result.dataset == "shopify_order_lines"
     assert result.dataframe.iloc[0]["sku"] == "BEANS-01"
     assert result.dataframe.iloc[0]["revenue"] == 1800
-    assert "created_at:>=2026-07-25" in session.calls[0][2]["variables"]["query"]
-    assert session.calls[0][1]["X-Shopify-Access-Token"] == "secret"
+    token_call, graphql_call = session.calls
+    assert token_call["data"] == {
+        "grant_type": "client_credentials",
+        "client_id": "dev-dashboard-client-id",
+        "client_secret": "dev-dashboard-client-secret",
+    }
+    assert "created_at:>=2026-07-25" in graphql_call["json"]["variables"]["query"]
+    assert graphql_call["headers"]["X-Shopify-Access-Token"] == "fresh-24-hour-token"
+
+
+def test_shopify_legacy_access_token_remains_supported():
+    session = ShopifySession()
+    ShopifyConnector(
+        {
+            "shop_domain": "coffee.myshopify.com",
+            "access_token": "legacy-token",
+            "api_version": "2026-07",
+        },
+        session=session,
+    ).fetch("2026-07-25", "2026-07-26")
+    assert len(session.calls) == 1
+    assert session.calls[0]["headers"]["X-Shopify-Access-Token"] == "legacy-token"
 
 
 YAHOO_XML = b"""<?xml version="1.0" encoding="UTF-8"?>
