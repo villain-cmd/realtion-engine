@@ -6,15 +6,19 @@
 
 ## v5 Data Automation
 
-CSV手動投入だけでなく、画面上で `取得 → プレビュー → DB保存 → 分析` を進められます。
+CSV手動投入だけでなく、画面上または日次ジョブで `取得 → DB保存 → 分析` を進められます。
 
-- Google Sheetsをテスト用DBとして使用
+- Supabase PostgreSQL Freeを永続DBとして使用
 - DBの実績・入札設定・商品マスタから直接分析
 - GA4 Data APIから日次チャネル実績を取得
 - Google Ads APIから日次広告グループ実績を取得
+- Shopify Admin GraphQL APIから注文・明細を取得
+- Yahoo!ショッピング注文APIから注文・明細を取得
 - Airレジ データ連携API用の設定可能なコネクタ
+- 5sourceを `business_metrics_daily` へ共通化
+- GitHub Actionsで毎日05:15 JSTに自動同期
 - CSVはDBへの初期投入・補助入力・直接分析の任意オプション
-- `_record_hash` による重複防止Upsert
+- 安定キーとhashによる重複防止Upsert
 
 Secretsの雛形は `.streamlit/secrets.example.toml`、設定と運用の詳細は `docs/data_automation.md` を参照してください。実際の認証情報はコミットしません。
 

@@ -8,5 +8,5 @@ janome>=0.5,<1.0
 google-analytics-data>=0.18,<1.0
 google-ads>=28,<30
 google-auth>=2.35,<3.0
-gspread>=6.1,<7.0
+cryptography>=42,<47
 requests>=2.32,<3.0

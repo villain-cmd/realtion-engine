@@ -261,7 +261,7 @@ header_slot = st.empty()
 with header_slot.container():
     brand_header()
 
-with st.expander("DATA AUTOMATION — API / Google Sheets DB", expanded=True):
+with st.expander("DATA AUTOMATION — API / PostgreSQL", expanded=True):
     automated_reports, automated_setting_df, automated_master_df = render_data_automation()
 
 has_automated_reports = bool(automated_reports)
@@ -284,7 +284,7 @@ if not report_files and not automated_reports:
         height=460,
         column_config={"definition": st.column_config.TextColumn("定義", width="large")},
     )
-    callout("Google Sheets DBから実績を読み込むか、任意オプションのCSVを投入すると分析を開始します。")
+    callout("PostgreSQLから実績を読み込むか、任意オプションのCSVを投入すると分析を開始します。")
     st.stop()
 
 # ---------------------------
