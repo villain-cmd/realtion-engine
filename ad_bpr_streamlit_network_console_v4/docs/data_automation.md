@@ -78,12 +78,15 @@ API別のraw dataset:
 
 ### Shopify
 
-- Shopify管理画面でカスタムアプリを作成
-- Admin APIの `read_orders` scopeを付与
+- Shopify Dev Dashboardで自社ストア用アプリを作成・インストール
+- アプリのバージョン設定でAdmin APIの `read_orders` scopeを付与
 - `SHOPIFY_SHOP_DOMAIN`
-- `SHOPIFY_ACCESS_TOKEN`
+- `SHOPIFY_CLIENT_ID`
+- `SHOPIFY_CLIENT_SECRET`
 
-注文と明細をAdmin GraphQL APIでページング取得する。60日より古い注文を初回移行する場合は `read_all_orders` の追加承認が必要。
+日次ジョブはClient Credentials Grantで24時間有効のアクセストークンを毎回取得し、
+注文と明細をAdmin GraphQL APIでページング取得する。固定アクセストークンをSecretsへ
+保存する必要はない。60日より古い注文を初回移行する場合は `read_all_orders` の追加承認が必要。
 
 ### Yahoo!ショッピング
 

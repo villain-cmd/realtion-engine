@@ -104,7 +104,7 @@ def _source_requirements(source: str, config: Mapping[str, Any]) -> tuple[list[s
     required = {
         "ga4": ["property_id"],
         "google_ads": ["customer_id", "developer_token"],
-        "shopify": ["shop_domain", "access_token"],
+        "shopify": ["shop_domain"],
         "yahoo_shopping": ["seller_id"],
         "airregi": ["base_url", "transactions_path", "api_key", "api_token"],
     }[source]
@@ -117,6 +117,14 @@ def _source_requirements(source: str, config: Mapping[str, Any]) -> tuple[list[s
         service_account = bool(config.get("json_key_file_path"))
         if not (oauth or adc or service_account):
             missing.append("Google広告OAuth/ADC認証")
+    if source == "shopify":
+        direct = bool(str(config.get("access_token", "")).strip())
+        client_credentials = all(
+            str(config.get(key, "")).strip()
+            for key in ("client_id", "client_secret")
+        )
+        if not (direct or client_credentials):
+            missing.append("client_id / client_secret")
     if source == "yahoo_shopping":
         direct = bool(str(config.get("access_token", "")).strip())
         refresh = all(
